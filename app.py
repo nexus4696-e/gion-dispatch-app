@@ -410,6 +410,121 @@ def show_flash() -> None:
 
 def render_role_gate() -> None:
     st.markdown("### ログインしてください")
+    ...
+    if st.button("ログイン", use_container_width=True):
+        ...
+def render_cast_edit_card(
+    c_id: str,
+    c_name: str,
+    pref: str,
+    target_row: Optional[Dict[str, Any]],
+    mode_key: str,
+    d_names: List[str],
+    time_slots: List[str],
+    loop_idx: int,
+) -> None:
+    current_status = target_row.get("status", "未定") if target_row else "未定"
+    current_driver = target_row.get("driver_name", "未定") if target_row else "未定"
+    current_time = target_row.get("pickup_time", "未定") if target_row else "未定"
+    current_memo = target_row.get("memo", "") if target_row else ""
+
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    st.markdown(f"**店番 {c_id}：{c_name}**")
+    st.markdown(f"<div class='small-note'>方面: {pref}</div>", unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        status_options = ["未定", "出勤", "自走", "休み"]
+        status_idx = status_options.index(current_status) if current_status in status_options else 0
+        new_status = st.selectbox(
+            "状態",
+            status_options,
+            index=status_idx,
+            key=f"status_{mode_key}_{loop_idx}_{c_id}",
+        )
+
+    with col2:
+        driver_options = ["未定"] + d_names
+        driver_idx = driver_options.index(current_driver) if current_driver in driver_options else 0
+        new_driver = st.selectbox(
+            "担当ドライバー",
+            driver_options,
+            index=driver_idx,
+            key=f"driver_{mode_key}_{loop_idx}_{c_id}",
+        )
+
+    col3, col4 = st.columns(2)
+    with col3:
+        time_options = ["未定"] + time_slots
+        time_idx = time_options.index(current_time) if current_time in time_options else 0
+        new_time = st.selectbox(
+            "迎え時間",
+            time_options,
+            index=time_idx,
+            key=f"time_{mode_key}_{loop_idx}_{c_id}",
+        )
+    with col4:
+        st.markdown("<div style='height:28px;'></div>", unsafe_allow_html=True)
+        save_btn = st.button(
+            "保存",
+            key=f"save_{mode_key}_{loop_idx}_{c_id}",
+            use_container_width=True,
+        )
+
+    new_memo = st.text_input(
+        "備考",
+        value=current_memo,
+        key=f"memo_{mode_key}_{loop_idx}_{c_id}",
+        placeholder="メモがあれば入力",
+    )
+
+    if save_btn:
+        record = {
+            "cast_id": c_id,
+            "cast_name": c_name,
+            "area": pref,
+            "status": new_status,
+            "memo": new_memo,
+            "target_date": "当日",
+        }
+
+        res = post_api({"action": "save_attendance", "records": [record]})
+        if res.get("status") != "success":
+            st.error(res.get("message", "出勤情報の保存に失敗しました。"))
+            st.markdown("</div>", unsafe_allow_html=True)
+            return
+
+        clear_cache()
+
+        db2 = get_db_data()
+        atts2 = db2.get("attendance", [])
+        saved_row = next(
+            (
+                r for r in atts2
+                if str(r.get("cast_id")) == str(c_id)
+                and r.get("target_date") == "当日"
+            ),
+            None,
+        )
+
+        if saved_row and new_status in ["出勤", "自走"]:
+            res2 = post_api({
+                "action": "update_dispatch",
+                "attendance_id": saved_row["id"],
+                "driver_name": new_driver,
+                "pickup_time": new_time,
+            })
+            if res2.get("status") != "success":
+                st.error(res2.get("message", "配車情報の保存に失敗しました。"))
+                st.markdown("</div>", unsafe_allow_html=True)
+                return
+
+        st.session_state.flash_msg = f"{c_name} の送迎設定を保存しました。"
+        clear_cache()
+        st.rerun()
+
+    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("### ログインしてください")
     selected_role = st.selectbox("種別選択", ["管理者", "スタッフ", "キャスト"])
     login_password = st.text_input("パスワード", type="password")
 
