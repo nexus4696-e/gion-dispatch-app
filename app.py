@@ -442,6 +442,62 @@ def render_cast_edit_card(
 # ホーム
 # =========================================================
 if st.session_state.page == "home":
+# ===============================
+# ② キャスト送迎
+# ===============================
+if st.session_state.page == "cast_dispatch":
+
+    st.markdown("## 🚗 キャスト送迎登録")
+
+    # 日付選択
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        if st.button("当日"):
+            st.session_state.target_date = datetime.date.today()
+    with col2:
+        if st.button("翌日"):
+            st.session_state.target_date = datetime.date.today() + datetime.timedelta(days=1)
+    with col3:
+        if st.button("週間"):
+            st.session_state.week_mode = True
+
+    if "target_date" not in st.session_state:
+        st.session_state.target_date = datetime.date.today()
+
+    st.write(f"対象日: {st.session_state.target_date}")
+
+    # キャスト取得
+    res = post_api({"action": "get_casts"})
+    casts = res.get("casts", [])
+
+    updates = []
+
+    for c in casts:
+        st.markdown("---")
+        st.write(f"👤 {c['name']}")
+
+        status = st.radio(
+            "状態",
+            ["出勤", "送迎", "自走", "休み"],
+            key=f"status_{c['id']}"
+        )
+
+        updates.append({
+            "cast_id": c["id"],
+            "status": status,
+            "target_date": str(st.session_state.target_date)
+        })
+
+    # 保存
+    if st.button("保存"):
+        res = post_api({
+            "action": "save_attendance",
+            "data": updates
+        })
+        if res.get("status") == "success":
+            st.success("保存完了")
+        else:
+            st.error("保存失敗")
     show_flash()
 
     st.markdown(
