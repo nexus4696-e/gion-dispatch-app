@@ -1301,6 +1301,14 @@ if current_page == "staff_portal" and st.session_state.is_admin:
                 st.markdown("</div>", unsafe_allow_html=True)
             else: st.info("本日の送迎申請はまだありません。")
 
+        <div style="font-size: 14px; color: #e65100; font-weight: bold; margin-top: 5px;">🌅 うち早便設定済： {early_count} 名</div>
+        </div>
+        ''', unsafe_allow_html=True)
+        
+        # 🟢 【ここに貼り付けます】 🟢
+
+        with st.expander(f"📋 当日の出勤キャストを表示する（{dispatch_count}名）", expanded=False):
+
         st.markdown("<hr style='margin:15px 0;'>", unsafe_allow_html=True)
         if "search_cast_key" not in st.session_state: st.session_state.search_cast_key = 0
         if "active_search_query" not in st.session_state: st.session_state.active_search_query = ""
