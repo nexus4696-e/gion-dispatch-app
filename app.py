@@ -27,7 +27,7 @@ st.markdown('<meta name="google" content="notranslate">', unsafe_allow_html=True
 components.html("""
     <script>
         const doc = window.parent.document;
-        const iconUrl = "";
+        const iconUrl = "https://raw.githubusercontent.com/nexus4696-e/gion-dispatch-app/main/gion.png";
         doc.title = "祇園配車アプリ";
         doc.querySelectorAll("link[rel*='icon']").forEach(e => e.remove());
         let appleIcon = doc.createElement("link");
