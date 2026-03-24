@@ -20,7 +20,7 @@ dt = datetime.datetime.now(JST)
 today_str = dt.strftime("%m月%d日")
 dow = ['月','火','水','木','金','土','日'][dt.weekday()]
 
-st.set_page_config(page_title="祇園配車アプリ", page_icon="🚗", layout="centered", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="祇園配車アプリ", page_icon="gion.png", layout="centered", initial_sidebar_state="collapsed")
 st.markdown('<meta name="google" content="notranslate">', unsafe_allow_html=True)
 
 # 🛡️ HTTPS化・祇園仕様アイコン/タイトル
