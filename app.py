@@ -29,6 +29,8 @@ components.html("""
         const doc = window.parent.document;
         const iconUrl = "https://raw.githubusercontent.com/nexus4696-e/gion-dispatch-app/main/gion.png";
         doc.title = "祇園配車アプリ";
+        
+        // スマホのブラウザ用アイコン設定
         doc.querySelectorAll("link[rel*='icon']").forEach(e => e.remove());
         let appleIcon = doc.createElement("link");
         appleIcon.rel = "apple-touch-icon";
@@ -38,6 +40,23 @@ components.html("""
         favIcon.rel = "icon";
         favIcon.href = iconUrl;
         doc.head.appendChild(favIcon);
+
+        // 🚨 Streamlitの赤い王冠設定(マニフェスト)を破壊し、祇園のアイコンに書き換える処理
+        doc.querySelectorAll("link[rel='manifest']").forEach(e => e.remove());
+        const manifest = {
+            "name": "祇園配車アプリ",
+            "short_name": "祇園",
+            "icons": [{"src": iconUrl, "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}],
+            "start_url": window.location.href,
+            "display": "standalone",
+            "theme_color": "#ffffff",
+            "background_color": "#ffffff"
+        };
+        const blob = new Blob([JSON.stringify(manifest)], {type: 'application/manifest+json'});
+        const manifestLink = doc.createElement('link');
+        manifestLink.rel = 'manifest';
+        manifestLink.href = URL.createObjectURL(blob);
+        doc.head.appendChild(manifestLink);
     </script>
 """, height=0, width=0)
 
