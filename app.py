@@ -58,14 +58,17 @@ MAP_SEARCH_BTN = "<a href='https://maps.google.com/' target='_blank' style='disp
 def post_api(payload):
     payload["api_token"] = API_TOKEN
     try:
-        res = requests.post(API_URL, json=payload, timeout=10)
+        # 🛡️ サーバーのアクセス制限に弾かれないよう、普通のブラウザのフリをする
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+        res = requests.post(API_URL, json=payload, timeout=10, headers=headers)
+        
         if res.status_code == 404: return {"status": "error", "message": "🚨 api.php が見つかりません。"}
-        # 🛡️ エラー情報の過剰な露出を防止
-        if res.status_code != 200: return {"status": "error", "message": "🚨 サーバーエラーが発生しました。"}
+        # 🚨 隠していたエラー番号と理由を画面に出すように戻します
+        if res.status_code != 200: return {"status": "error", "message": f"🚨 サーバーエラー ({res.status_code}): {res.text[:200]}"}
+        
         try: return res.json()
-        except: return {"status": "error", "message": "🚨 サーバーからの応答が不正です。"}
-    except Exception: return {"status": "error", "message": "🚨 通信に失敗しました。"}
-
+        except: return {"status": "error", "message": f"🚨 サーバーからの応答が不正です: {res.text[:200]}"}
+    except Exception as e: return {"status": "error", "message": f"🚨 通信に失敗しました: {str(e)}"}
 @st.cache_data(ttl=2)
 def get_db_data():
     res = post_api({"action": "get_all_data"})
