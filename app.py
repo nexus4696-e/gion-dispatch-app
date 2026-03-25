@@ -86,7 +86,7 @@ def post_api(payload):
         except: return {"status": "error", "message": f"🚨 サーバーからの応答が不正です: {res.text[:200]}"}
     except Exception as e: return {"status": "error", "message": f"🚨 通信に失敗しました: {str(e)}"}
 
-@st.cache_data(ttl=2)
+@st.cache_data(ttl=30)
 def get_db_data():
     res = post_api({"action": "get_all_data"})
     if res.get("status") == "success": return res["data"]
