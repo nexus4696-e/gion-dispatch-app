@@ -1139,6 +1139,31 @@ if current_page == "staff_portal" and st.session_state.is_admin:
                         st.session_state.flash_msg = "AI配車が完了しました！"
                         st.rerun()
 
+        # ===== ここから追加：確定ルートの一括LINE送信機能（① 配車リスト用） =====
+        st.markdown("<hr style='margin:15px 0;'>", unsafe_allow_html=True)
+        if st.button("🚀 確定した送迎時間を全員に一括でLINE送信する", key="bulk_line_list", type="primary", use_container_width=True):
+            line_token_bulk = sets.get("line_access_token", "")
+            if not line_token_bulk:
+                st.error("⚠️ 管理設定でLINEアクセストークンが設定されていません。")
+            else:
+                with st.spinner("LINEを一斉送信中..."):
+                    success_count = 0
+                    for row in atts:
+                        if row["target_date"] == "当日" and row["status"] in ["出勤", "自走"]:
+                            drv = row.get("driver_name")
+                            pt = row.get("pickup_time")
+                            if drv and drv != "未定" and pt and pt != "未定":
+                                c_info = next((c for c in casts if str(c["cast_id"]) == str(row["cast_id"])), {})
+                                line_uid = c_info.get("line_user_id", "")
+                                latest_name = c_info.get("name", row["cast_name"])
+                                if line_uid:
+                                    notify_cast_via_line(line_token_bulk, line_uid, latest_name, pt, drv)
+                                    success_count += 1
+                                    time.sleep(0.1)
+                    st.success(f"✅ 合計 {success_count} 名のキャストへ配車時間のLINE通知を送信しました！")
+        st.markdown("<hr style='margin:15px 0;'>", unsafe_allow_html=True)
+        # ===== 追加ここまで =====
+
         disp_date = st.radio("表示", ["当日", "翌日", "週間"], horizontal=True, label_visibility="collapsed")
         
         unassigned, my_tasks = [], {}
